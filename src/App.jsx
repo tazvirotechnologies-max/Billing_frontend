@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 
 import Login from "./pages/login";
 import Billing from "./pages/billing";
-import BillHistory from "./pages/BillHistory";
-
 import AdminLayout from "./pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import AdminBills from "./pages/admin/AdminBills";
@@ -71,7 +69,9 @@ export default function App() {
       onLogout={logout}
       onNavigate={setPage}   // 🔥 THIS LINE
     >
-      {page === "admin-dashboard" && <Dashboard />}
+      {page === "admin-dashboard" && (
+  <Dashboard onNavigate={setPage} />
+)}
       {page === "admin-bills" && <AdminBills />}
       {page === "admin-reports" && <AdminReports />}
       {page === "admin-inventory" && <AdminInventory />}
@@ -83,42 +83,12 @@ export default function App() {
 }
 
 
-  // =========================
-  // STAFF AREA (POS)
-  // =========================
-  if (page === "history") {
-    return (
-      <BillHistory
-        user={user}
-        onBack={() => setPage("pos")}
-      />
-    );
-  }
+
 
   return (
     <div>
-      {/* Staff Top Bar */}
-      <div className="bg-gray-900 text-white text-sm px-4 py-2 flex justify-between">
-        <span>Logged in as {user.username}</span>
 
-        <div className="space-x-4">
-          <button
-            onClick={() => setPage("history")}
-            className="underline"
-          >
-            Bills
-          </button>
-
-          <button
-            onClick={logout}
-            className="underline text-red-400"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-
-      <Billing user={user} onLogout={logout} />
+    <Billing user={user} onLogout={logout} />
     </div>
   );
 }

@@ -3,32 +3,23 @@ import api from "../../api";
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [ingredients, setIngredients] = useState([]);
-
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  // New product
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
-  const [category, setCategory] = useState("");
 
-  // Recipe editor
   const [recipes, setRecipes] = useState([]);
   const [ingredientId, setIngredientId] = useState("");
   const [qtyUsed, setQtyUsed] = useState("");
 
-  // Load data
   const loadAll = async () => {
     try {
-      const [p, c, i] = await Promise.all([
+      const [p, i] = await Promise.all([
         api.get("products/"),
-        api.get("categories/"),
         api.get("ingredients/"),
       ]);
-
       setProducts(p.data);
-      setCategories(c.data);
       setIngredients(i.data);
     } catch {
       alert("Failed to load data");
@@ -39,34 +30,24 @@ export default function AdminProducts() {
     loadAll();
   }, []);
 
-  // Add product
   const addProduct = async () => {
-    if (!name || !price || !category) {
+    if (!name || !price) {
       alert("Fill all fields");
       return;
     }
 
     try {
-      await api.post("products/", {
-        name,
-        price,
-        category,
-      });
-
+      await api.post("products/", { name, price });
       setName("");
       setPrice("");
-      setCategory("");
-
       loadAll();
     } catch {
       alert("Failed to add product");
     }
   };
 
-  // Delete product
   const deleteProduct = async (id) => {
     if (!confirm("Delete this product?")) return;
-
     try {
       await api.delete(`products/${id}/`);
       loadAll();
@@ -75,13 +56,11 @@ export default function AdminProducts() {
     }
   };
 
-  // Open recipe editor
   const openRecipe = async (product) => {
     try {
       const res = await api.get(
         `products/${product.id}/recipes/`
       );
-
       setSelectedProduct(product);
       setRecipes(res.data);
     } catch {
@@ -89,7 +68,6 @@ export default function AdminProducts() {
     }
   };
 
-  // Add recipe item
   const addRecipe = async () => {
     if (!ingredientId || !qtyUsed) return;
 
@@ -101,7 +79,6 @@ export default function AdminProducts() {
           quantity_used: qtyUsed,
         }
       );
-
       openRecipe(selectedProduct);
       setIngredientId("");
       setQtyUsed("");
@@ -111,21 +88,30 @@ export default function AdminProducts() {
   };
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">
-        Products & Recipes
-      </h1>
+    <div className="min-h-screen bg-gradient-to-r from-white via-purple-50 to-purple-100 p-8">
 
-      {/* Add Product */}
-      <div className="bg-white rounded-xl shadow p-4 mb-6">
-        <h2 className="font-semibold mb-3">Add Product</h2>
+      {/* HEADER */}
+      <div className="mb-10">
+        <h1 className="text-3xl font-semibold text-purple-700 tracking-tight">
+          Products & Recipes
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
+          Manage menu items and ingredient recipes
+        </p>
+      </div>
 
-        <div className="flex flex-wrap gap-3">
+      {/* ADD PRODUCT CARD */}
+      <div className="bg-white rounded-2xl shadow-lg border border-purple-100 p-6 mb-8">
+        <h2 className="text-lg font-semibold text-purple-700 mb-4">
+          Add New Product
+        </h2>
+
+        <div className="flex flex-wrap gap-4">
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Name"
-            className="border px-2 py-1 rounded"
+            placeholder="Product Name"
+            className="px-4 py-2 rounded-lg border border-purple-200 focus:ring-2 focus:ring-purple-500 outline-none"
           />
 
           <input
@@ -133,61 +119,58 @@ export default function AdminProducts() {
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             placeholder="Price"
-            className="border px-2 py-1 rounded"
+            className="px-4 py-2 rounded-lg border border-purple-200 focus:ring-2 focus:ring-purple-500 outline-none"
           />
-
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="border px-2 py-1 rounded"
-          >
-            <option value="">Category</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
 
           <button
             onClick={addProduct}
-            className="bg-black text-white px-4 py-1 rounded"
+            className="px-6 py-2 rounded-lg text-white text-sm font-medium
+                       bg-gradient-to-r from-purple-600 to-indigo-600
+                       hover:opacity-90 transition"
           >
-            Add
+            Add Product
           </button>
         </div>
       </div>
 
-      {/* Product List */}
-      <div className="bg-white rounded-xl shadow overflow-x-auto">
+      {/* PRODUCT TABLE */}
+      <div className="bg-white rounded-2xl shadow-lg border border-purple-100 overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-100">
+
+          <thead className="bg-purple-50 text-purple-700">
             <tr>
-              <th className="p-3">Name</th>
-              <th className="p-3">Price</th>
-              <th className="p-3">Category</th>
-              <th className="p-3">Actions</th>
+              <th className="p-4 text-left font-semibold">ID</th>
+              <th className="p-4 text-left font-semibold">Name</th>
+              <th className="p-4 text-left font-semibold">Price</th>
+              <th className="p-4 text-left font-semibold">Actions</th>
             </tr>
           </thead>
 
           <tbody>
             {products.map((p) => (
-              <tr key={p.id} className="border-t">
-                <td className="p-3">{p.name}</td>
-                <td className="p-3">₹{p.price}</td>
-                <td className="p-3">{p.category_name}</td>
+              <tr
+                key={p.id}
+                className="border-t border-purple-100 hover:bg-purple-50/40 transition"
+              >
+                <td className="p-4 text-gray-600">{p.id}</td>
+                <td className="p-4 font-medium text-gray-800">
+                  {p.name}
+                </td>
+                <td className="p-4 text-purple-700 font-semibold">
+                  ₹{p.price}
+                </td>
 
-                <td className="p-3 space-x-2">
+                <td className="p-4 space-x-4">
                   <button
                     onClick={() => openRecipe(p)}
-                    className="text-blue-600"
+                    className="text-purple-600 font-medium hover:underline"
                   >
                     Recipes
                   </button>
 
                   <button
                     onClick={() => deleteProduct(p.id)}
-                    className="text-red-600"
+                    className="text-red-500 font-medium hover:underline"
                   >
                     Delete
                   </button>
@@ -195,40 +178,49 @@ export default function AdminProducts() {
               </tr>
             ))}
           </tbody>
+
         </table>
       </div>
 
-      {/* Recipe Editor */}
+      {/* RECIPE MODAL */}
       {selectedProduct && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-xl w-96 max-h-[90vh] overflow-y-auto">
-            <h2 className="font-bold mb-3 text-center">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center">
+
+          <div className="bg-white rounded-2xl shadow-xl border border-purple-100 p-8 w-96 max-h-[90vh] overflow-y-auto">
+
+            <h2 className="text-xl font-semibold text-purple-700 mb-4 text-center">
               Recipe – {selectedProduct.name}
             </h2>
+
+            {recipes.length === 0 && (
+              <p className="text-sm text-gray-400 mb-4 text-center">
+                No ingredients added yet
+              </p>
+            )}
 
             {recipes.map((r) => (
               <div
                 key={r.id}
-                className="flex justify-between text-sm mb-2"
+                className="flex justify-between text-sm mb-2 bg-purple-50 px-3 py-2 rounded-lg"
               >
                 <span>{r.ingredient_name}</span>
-                <span>{r.quantity_used}</span>
+                <span className="font-semibold text-purple-700">
+                  {r.quantity_used}
+                </span>
               </div>
             ))}
 
-            <hr className="my-3" />
+            <hr className="my-4 border-purple-100" />
 
-            {/* Add Ingredient */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <select
                 value={ingredientId}
                 onChange={(e) =>
                   setIngredientId(e.target.value)
                 }
-                className="border w-full px-2 py-1"
+                className="w-full px-4 py-2 rounded-lg border border-purple-200 focus:ring-2 focus:ring-purple-500 outline-none"
               >
-                <option value="">Ingredient</option>
-
+                <option value="">Select Ingredient</option>
                 {ingredients.map((i) => (
                   <option key={i.id} value={i.id}>
                     {i.name}
@@ -243,12 +235,14 @@ export default function AdminProducts() {
                   setQtyUsed(e.target.value)
                 }
                 placeholder="Quantity used"
-                className="border w-full px-2 py-1"
+                className="w-full px-4 py-2 rounded-lg border border-purple-200 focus:ring-2 focus:ring-purple-500 outline-none"
               />
 
               <button
                 onClick={addRecipe}
-                className="w-full bg-black text-white py-2 rounded"
+                className="w-full py-2 rounded-lg text-sm font-medium
+                           bg-gradient-to-r from-purple-600 to-indigo-600
+                           text-white hover:opacity-90 transition"
               >
                 Add Ingredient
               </button>
@@ -256,10 +250,11 @@ export default function AdminProducts() {
 
             <button
               onClick={() => setSelectedProduct(null)}
-              className="w-full mt-3 text-gray-500 text-sm"
+              className="w-full mt-4 text-sm text-gray-500 hover:text-gray-700"
             >
               Close
             </button>
+
           </div>
         </div>
       )}
